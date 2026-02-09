@@ -20,6 +20,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    volumes:
+      - ./output:/app/output
 
   worker:
     build: .
@@ -33,6 +35,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    volumes:
+        - ./output:/app/output
 
   redis:
     image: redis:7-alpine

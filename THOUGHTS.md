@@ -31,7 +31,7 @@ The system consists of 7 fundamental layers:
 - **Data Extraction Layer:** Playwright browser automation interacting with the target website
 - **Broker/State Layer:** Redis acts as a message broker, stores task history, and keeps temporary progress data
 - **Error Handling Layer:** Managing retries and failure states
-- **Output Layer:** Structured JSON responses for data consumption
+- **Output Layer:** Structured JSON responses for API consumption and physical JSON file persistence (to /output) for review
 
 ## 4. Local MVP validation
 Before transitioning towards docker, I validated the entire pipeline to ensure the architecture was correct. This included:
@@ -79,33 +79,27 @@ Each book has a details page with more information such as:
 - Product information (UPC, product type, price excluding tax, price including tax, tax, availability, number of reviews)
 
 ## Choosing which data to extract
-Here is the Minimum Viable Dataset (MVD) I decided to extract for each book:
+For this MVP, I decided to focus on the **Listing Page Strategy**
 
-### From listing pages
+While the website offers a detailed view for every book (UPC, Description, Stock count), visiting the detail page for every single book (1000 items) would significantly increase the execution time and load on the target server.
+
+Therefore, I defined the **Minimum Viable Dataset (MVD)** based on what is available on the **Catalogue / Listing** pages to demonstrate high-performance pagination scraping:
+
+### Extracted Fields (Listing Page)
 - Title
 - Price
 - Rating
 - Detail page URL
 
-### From details page
-- Description
-- UPC
-- Availability
-- Image URL
-- Category
+*Note: The data schemas (`schemas.py`) are designed to support full detail scraping (UPC, Description) in a future v2 iteration.*
 
 ### Final MVD Json
 ```json
 {
-  "title": "...",
-  "price": "...",
-  "rating": "...",
-  "detail_page_url": "...",
-  "description": "...",
-  "upc": "...",
-  "availability": "...",
-  "image_url": "...",
-  "category": "..."
+  "title": "A Light in the Attic",
+  "price": "£51.77",
+  "rating": "Three",
+  "detail_page_url": "https://books.toscrape.com/..."
 }
 ```
 

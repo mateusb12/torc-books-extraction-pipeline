@@ -2,3 +2,4 @@
 *.iml
 /repomix-output.md
 /.env
+/output/*.json
