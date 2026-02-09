@@ -18,7 +18,7 @@ A containerized, asynchronous data extraction pipeline that scrapes book informa
 
 1. Clone this repository:
    ```bash
-   git clone git@github.com:mateusb12/torc-books-extraction-pipeline.git
+   git clone https://github.com/mateusb12/torc-books-extraction-pipeline.git
    cd torc-books-extraction-pipeline
    ```
 
