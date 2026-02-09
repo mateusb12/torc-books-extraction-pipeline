@@ -1,24 +1,32 @@
-version: '3.9'
+version: "3.9"
 
 services:
   api:
     build: .
-    volumes:
-      - .:/app
+    container_name: torc-api
+    command: uvicorn source.app:app --host 0.0.0.0 --port 8000
     ports:
       - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - redis
 
   worker:
     build: .
-    command: celery -A source.tasks worker --loglevel=INFO
-    volumes:
-      - .:/app
+    container_name: torc-worker
+    command: celery -A source.core.celery_app worker --loglevel=INFO
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/1
     depends_on:
       - redis
 
   redis:
-    image: redis:6.2
+    image: redis:7-alpine
+    container_name: torc-redis
     ports:
       - "6379:6379"
