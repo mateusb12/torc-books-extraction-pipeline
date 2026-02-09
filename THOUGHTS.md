@@ -51,6 +51,67 @@ The investigation consists of 4 main areas:
     - Celery retry behavior (configuring retry limits, making tasks idempotent, logging failures, etc)
     - Playwright-specific failure modes (slow navigation, missing selector, browser caches)
 
+## Exploratory analysis of books.toscrape.com
+
+Before writing any code, I opened `https://books.toscrape.com` in the browser and investigated what data is considered useful
+
+There is plenty of data here.
+### Main page
+- Book categories listing on the left sidebar
+- Product pagination results in the main content area
+- Each book has a cover picture, a review star rating, a title, a price and availability status
+
+### Book details
+Each book has a details page with more information such as:
+- Title
+- Price
+- How many books are available in stock
+- Product description
+- Product information (UPC, product type, price excluding tax, price including tax, tax, availability, number of reviews)
+
+## Choosing which data to extract
+
+Here is the Minimum Viable Dataset (MVD) I decided to extract for each book:
+
+### From listing pages
+- Title
+- Price
+- Rating
+- Detail page URL
+
+### From details page
+- Description
+- UPC (unique product code)
+- Availability (number of books in stock)
+- Image URL
+- Category
+
+### Excluded fields
+- price excluding tax
+- price including tax
+- tax
+- number of reviews
+- product type
+
+They were intentionally excluded from the MVD because:
+- They are not critical for the core functionality of the scraper
+- Extracting them would not demonstrate any additional technical challenges
+
+### Final MVD Json
+```json
+{
+  "title": "...",
+  "price": "...",
+  "rating": "...",
+  "detail_page_url": "...",
+  "description": "...",
+  "upc": "...",
+  "availability": "...",
+  "image_url": "...",
+  "category": "..."
+}
+```
+
 # Why did you choose your extraction strategy
 - When should we use playwright?
   - Dynamic content
