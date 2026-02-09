@@ -46,8 +46,24 @@ The investigation consists of 4 main areas:
     - How celery queues and workers operate?
     - How will the services communicate over the same docker network?
     - How can we do a proper separation of concerns between the inner components?
+- Error handling main challenges
+    - Common failure scenarios (internet disruptions, website temporary unavailable, html structure changes, etc)
+    - Celery retry behavior (configuring retry limits, making tasks idempotent, logging failures, etc)
+    - Playright-specific failure modes (slow navigation, missing selector, browser caches)
 
 # Why did you choose your extraction strategy
+- When should I use playright?
+  - Dynamic content
+  - Hard-to-reverse engineer endpoints
+  - Anti-scraping protections
+  - Need to visually validate selectors
+- When should I use direct HTTP requests?
+  - The website is static
+  - Everything is ready on page load
+  - URL patterns are simple and straightforward
+
+
+
 
 # What alternatives did you consider
 
