@@ -2,10 +2,10 @@ from source.core.celery_app import celery
 from source.features.extraction.service import run_preview_extraction
 
 
-@celery.task(name="features.extraction.preview")
-def preview_task():
+@celery.task(name="features.extraction.preview", bind=True)
+def preview_task(self):
     try:
-        data = run_preview_extraction()
+        data = run_preview_extraction(task_instance=self)
     except Exception as e:
         print("ERROR during extraction:")
         print(repr(e))

@@ -49,6 +49,9 @@ def get_task_status(task_id: str):
         "state": result.state,
     }
 
+    if result.state == 'PROGRESS':
+        response["progress"] = result.info
+
     if result.state == "SUCCESS":
         response["result"] = result.get()
 

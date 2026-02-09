@@ -29,7 +29,7 @@ The system consists of 7 fundamental layers:
 - **Trigger Layer (API):** FastAPI endpoints responsible for initiating the extraction process
 - **Orchestration Layer:** Celery managing the asynchronous task queue
 - **Data Extraction Layer:** Playwright browser automation interacting with the target website
-- **Broker/State Layer:** Redis acting as both the message broker for Celery and a persistent store for task history
+- **Broker/State Layer:** Redis acts as a message broker, stores task history, and keeps temporary progress data
 - **Error Handling Layer:** Managing retries and failure states
 - **Output Layer:** Structured JSON responses for data consumption
 
@@ -51,7 +51,7 @@ Initially, I relied on `curl` commands to interact with the API. However, I iden
 
 To address this, I implemented a lightweight **React + Vite** frontend. This serves as a control plane that:
 - Eliminates manual polling (the UI handles the event loop)
-- Visualizes the "Pending" vs "Success" states automatically
+- Fixes the UX problem with long tasks: scraping many pages is slow and tedious, and without updates users may assume the task is stuck. I used Celery’s update_state to send progress, allowing the frontend to show a real-time bar (Page X of Y).
 - **Dynamic Introspection:** Allows fetching the total number of pages (pagination) on-demand to gauge the scope before scraping.
 - Persists a history of recent tasks using Redis Lists, ensuring context isn't lost on page refresh
 
@@ -134,3 +134,5 @@ Here is the Minimum Viable Dataset (MVD) I decided to extract for each book:
 - Performance vs realism
 - Docker image size increase
 - Frontend complexity vs usability
+- **Polling vs. WebSockets for Progress**: I chose to implement short-interval HTTP polling (1s) for the progress bar instead of setting up a complex WebSocket connection
+    - **Reasoning**: For a local MVP with a single user, polling is significantly simpler to implement and debug than managing WebSocket lifecycles. The overhead on a local Redis instance is negligible.
