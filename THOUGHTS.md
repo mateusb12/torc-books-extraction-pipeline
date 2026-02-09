@@ -23,49 +23,47 @@ So basically the project involves several high-level steps from my end
 - Whether to scrape all pages or just a subset
 - What 'good enough' means for error handling, retries, etc.
 
-## 4. System design architecture
-The system consist of 6 fundamental layers
-- Data Extraction Layer: responsible for extracting data from the target website (e.g. using Playwright)
-- Trigger Layer: responsible for initiating the extraction process (e.g. via a REST API endpoint)
-- Extraction Layer: responsible for orchestrating the extraction process (e.g. using Celery to manage asynchronous tasks)
-- Error Handling Layer: responsible for managing errors and retries (e.g. using Celery's built-in retry mechanism)
-- Async Layer: responsible for managing asynchronous execution (e.g. using Celery workers)
-- Output Layer: responsible for storing and outputting the extracted data (e.g. saving to a JSON file)
+## 3. System Design Architecture
+The system consists of 7 fundamental layers:
+- **Presentation Layer (Frontend):** A React/Vite dashboard to trigger tasks and visualize results in real-time
+- **Trigger Layer (API):** FastAPI endpoints responsible for initiating the extraction process
+- **Orchestration Layer:** Celery managing the asynchronous task queue
+- **Data Extraction Layer:** Playwright browser automation interacting with the target website
+- **Broker/State Layer:** Redis acting as both the message broker for Celery and a persistent store for task history
+- **Error Handling Layer:** Managing retries and failure states
+- **Output Layer:** Structured JSON responses for data consumption
 
-## 5. Local MVP validation
-Before transitioning towards docker, I validated the entire pipeline to ensure the architecture was correct before containerzing it. This included:
+## 4. Local MVP validation
+Before transitioning towards docker, I validated the entire pipeline to ensure the architecture was correct. This included:
 - FastAPI endpoint to trigger Celery tasks
 - Celery workers consuming tasks via Redis
 - Playwright browser automation extracting real data
 - Pydantic schema validation + JSON serialization
 - Task status retrieval `/task/{task_id}`
 
-With this baseline validated, the next step is safely moving the entire system into Docker Compose
+With this baseline validated, the next step was containerizing the system and improving the user experience.
+
+# Evolution of the Solution: Why a Frontend?
+Initially, I relied on `curl` commands to interact with the API. However, I identified a significant usability friction with the asynchronous nature of the system:
+1. Triggering a task returned a `task_id`.
+2. I had to manually copy this ID and repeatedly run `curl` to poll for status.
+3. I had no easy way to see a history of previous runs.
+
+To address this, I implemented a lightweight **React + Vite** frontend. This serves as a control plane that:
+- Eliminates manual polling (the UI handles the event loop)
+- Visualizes the "Pending" vs "Success" states automatically
+- Persists a history of recent tasks using Redis Lists, ensuring context isn't lost on page refresh
 
 # What you investigated before implementing
-The investigation consists of 4 main areas:
+The investigation consisted of 4 main areas:
 - Website structure and behavior
-    - Static or dynamic html content?
-    - Predictable URL patterns?
-    - Consistent HTML structure?
-    - Anti-scraping measures? (captcha, dynamic tokens, user-agent restrictions, etc)
 - Comparison of extracting approaches
-    - Direct HTTP requests and HTML parsing
-    - Browser automation (e.g. Playwright, Selenium)
 - Asynchronous task management
-    - How celery queues and workers operate?
-    - How will the services communicate over the same docker network?
-    - How can we do a proper separation of concerns between the inner components?
 - Error handling main challenges
-    - Common failure scenarios (internet disruptions, website temporary unavailable, html structure changes, etc)
-    - Celery retry behavior (configuring retry limits, making tasks idempotent, logging failures, etc)
-    - Playwright-specific failure modes (slow navigation, missing selector, browser caches)
 
 ## Exploratory analysis of books.toscrape.com
+Before writing any code, I opened `https://books.toscrape.com` in the browser and investigated what data is considered useful.
 
-Before writing any code, I opened `https://books.toscrape.com` in the browser and investigated what data is considered useful
-
-There is plenty of data here.
 ### Main page
 - Book categories listing on the left sidebar
 - Product pagination results in the main content area
@@ -80,7 +78,6 @@ Each book has a details page with more information such as:
 - Product information (UPC, product type, price excluding tax, price including tax, tax, availability, number of reviews)
 
 ## Choosing which data to extract
-
 Here is the Minimum Viable Dataset (MVD) I decided to extract for each book:
 
 ### From listing pages
@@ -91,21 +88,10 @@ Here is the Minimum Viable Dataset (MVD) I decided to extract for each book:
 
 ### From details page
 - Description
-- UPC (unique product code)
-- Availability (number of books in stock)
+- UPC
+- Availability
 - Image URL
 - Category
-
-### Excluded fields
-- price excluding tax
-- price including tax
-- tax
-- number of reviews
-- product type
-
-They were intentionally excluded from the MVD because:
-- They are not critical for the core functionality of the scraper
-- Extracting them would not demonstrate any additional technical challenges
 
 ### Final MVD Json
 ```json
@@ -122,37 +108,28 @@ They were intentionally excluded from the MVD because:
 }
 ```
 
-# Why did you choose your extraction strategy
-- When should we use playwright?
-  - Dynamic content
-  - Hard-to-reverse engineer endpoints
-  - Anti-scraping protections
-  - Need to visually validate selectors
-- When should we use direct HTTP requests?
-  - The website is static
-  - Everything is ready on page load
-  - URL patterns are simple and straightforward
+# Why did you choose your extraction strategy?
+### When should we use Playwright?
+- Dynamic content
+- Hard-to-reverse engineer endpoints
+- Anti-scraping protections
+- Need to visually validate selectors
 
-My reasoning:
-- The challenge explicitly mentions "external process execution or browser automation", which suggests Playright is a good candidate for that
-- Browser automation is a lot more closer to real-world scraping scenarios where
-  - content may become dynamic at some point
-  - endpoints may become harder to reverse engineer
-  - anti-scraping measures require a more human-like interaction
+### When should we use direct HTTP requests?
+- Static website
+- Everything is ready on page load
+- URL patterns are straightforward
 
-Also, using playwright allows me to:
-- visually validate the selectors during the exploratory phase
-- keep the extraction strategy resilient for potential future website changes
-- demonstrate proficiency with automating a headless browser end-to-end
-
-PS: At the same time, I still considered a more traditional HTTP-request based scraper as an alternative strategy.
+### My reasoning:
+- The challenge explicitly mentions automation
+- Browser automation is closer to real-world scraping
+- Playwright allows selector validation and is resilient to future changes
 
 # What alternatives did you consider
 - Direct HTTP requests + HTML parsing
-- Javascript based browser automation (e.g. Puppeteer)
-- Storing data in a database vs writing a flat json file
+- Database storage (PostgreSQL)
 
 # Any trade-offs you made
 - Performance vs realism
-- Simplicity vs flexibility
-- Docker image size vs capabilities
+- Docker image size increase
+- Frontend complexity vs usability
