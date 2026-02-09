@@ -2,11 +2,6 @@ from source.core.celery_app import celery
 from source.features.extraction.service import run_preview_extraction
 
 
-@celery.task(name="features.extraction.run_extraction")
-def run_extraction():
-    return {"status": "extraction task completed (dummy)"}
-
-
 @celery.task(name="features.extraction.preview")
 def preview_task():
     try:

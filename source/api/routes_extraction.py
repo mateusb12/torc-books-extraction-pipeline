@@ -2,27 +2,19 @@ from celery.result import AsyncResult
 from fastapi import APIRouter
 
 from source.core.celery_app import celery
-from source.features.extraction.tasks import run_extraction, preview_task
+from source.features.extraction.tasks import preview_task
 
 extraction_router = APIRouter()
 
-@extraction_router.get("/ping")
-def ping():
-    return {"status": "ok"}
 
 @extraction_router.post("/extract")
 def trigger_extraction():
-    task = run_extraction.delay()
-    return {
-        "message": "extraction task queued",
-        "task_id": task.id,
-    }
-
-@extraction_router.post("/preview")
-def extract_preview():
+    """
+    Triggers the main extraction process (formerly preview_task).
+    """
     task = preview_task.delay()
     return {
-        "message": "preview extraction queued",
+        "message": "extraction task queued",
         "task_id": task.id,
     }
 
