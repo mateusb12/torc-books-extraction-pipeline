@@ -23,7 +23,7 @@ So basically the project involves several high-level steps from my end
 - Whether to scrape all pages or just a subset
 - What 'good enough' means for error handling, retries, etc.
 
-## 3. System design architecture
+## 4. System design architecture
 The system consist of 6 fundamental layers
 - Data Extraction Layer: responsible for extracting data from the target website (e.g. using Playwright)
 - Trigger Layer: responsible for initiating the extraction process (e.g. via a REST API endpoint)
@@ -31,6 +31,16 @@ The system consist of 6 fundamental layers
 - Error Handling Layer: responsible for managing errors and retries (e.g. using Celery's built-in retry mechanism)
 - Async Layer: responsible for managing asynchronous execution (e.g. using Celery workers)
 - Output Layer: responsible for storing and outputting the extracted data (e.g. saving to a JSON file)
+
+## 5. Local MVP validation
+Before transitioning towards docker, I validated the entire pipeline to ensure the architecture was correct before containerzing it. This included:
+- FastAPI endpoint to trigger Celery tasks
+- Celery workers consuming tasks via Redis
+- Playwright browser automation extracting real data
+- Pydantic schema validation + JSON serialization
+- Task status retrieval `/task/{task_id}`
+
+With this baseline validated, the next step is safely moving the entire system into Docker Compose
 
 # What you investigated before implementing
 The investigation consists of 4 main areas:
