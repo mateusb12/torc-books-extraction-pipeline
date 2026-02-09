@@ -72,6 +72,7 @@ function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
+  const [totalPages, setTotalPages] = useState(null); // New state for page count
 
   // Fetch history on load
   useEffect(() => {
@@ -84,6 +85,17 @@ function App() {
       setHistory(res.data.history);
     } catch (err) {
       console.error("Failed to load history", err);
+    }
+  };
+
+  const checkPages = async () => {
+    try {
+      setTotalPages("Loading...");
+      const res = await axios.get(`${API_URL}/pages`);
+      setTotalPages(res.data.total_pages);
+    } catch (err) {
+      console.error(err);
+      setTotalPages("Error");
     }
   };
 
@@ -176,17 +188,32 @@ function App() {
       <div style={styles.main}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 style={{ margin: 0 }}>📚 Torc Scraper</h1>
-          <button
-            onClick={startExtraction}
-            disabled={loading}
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? 'Processing...' : '+ New Extraction Task'}
-          </button>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Page Count Button */}
+            <button
+              onClick={checkPages}
+              style={{
+                ...styles.button,
+                backgroundColor: '#444', // Dark grey for secondary action
+              }}
+            >
+              {totalPages ? `Pages: ${totalPages}` : '🔍 Check Page Count'}
+            </button>
+
+            {/* Extraction Button */}
+            <button
+              onClick={startExtraction}
+              disabled={loading}
+              style={{
+                ...styles.button,
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Processing...' : '+ New Extraction Task'}
+            </button>
+          </div>
         </div>
 
         {activeTaskId ? (

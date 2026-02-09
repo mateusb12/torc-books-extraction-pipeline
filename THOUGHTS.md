@@ -52,6 +52,7 @@ Initially, I relied on `curl` commands to interact with the API. However, I iden
 To address this, I implemented a lightweight **React + Vite** frontend. This serves as a control plane that:
 - Eliminates manual polling (the UI handles the event loop)
 - Visualizes the "Pending" vs "Success" states automatically
+- **Dynamic Introspection:** Allows fetching the total number of pages (pagination) on-demand to gauge the scope before scraping.
 - Persists a history of recent tasks using Redis Lists, ensuring context isn't lost on page refresh
 
 # What you investigated before implementing

@@ -4,6 +4,7 @@ from celery.result import AsyncResult
 from fastapi import APIRouter
 
 from source.core.celery_app import celery
+from source.features.extraction.service import fetch_total_pages
 from source.features.extraction.tasks import preview_task
 
 extraction_router = APIRouter()
@@ -55,3 +56,11 @@ def get_task_status(task_id: str):
         response["error"] = str(result.info)
 
     return response
+
+@extraction_router.get("/pages")
+def get_total_pages():
+    """
+    Returns the total number of pages available to scrape
+    """
+    count = fetch_total_pages()
+    return {"total_pages": count}

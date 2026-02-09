@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import sync_playwright
 from urllib.parse import urljoin
 from source.features.extraction.schemas import BookPreview
@@ -36,3 +38,21 @@ def extract_first_page_previews():
 
         browser.close()
         return previews
+
+
+def get_page_count():
+    """
+    Scrapes the total number of pages from the pagination element
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(BASE_URL, timeout=60000)
+
+        pager_text = page.locator("ul.pager li.current").inner_text().strip()
+
+        match = re.search(r"of (\d+)", pager_text)
+        total_pages = int(match.group(1)) if match else 1
+
+        browser.close()
+        return total_pages
