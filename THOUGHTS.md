@@ -125,8 +125,14 @@ Therefore, I defined the **Minimum Viable Dataset (MVD)** based on what is avail
 - Database storage (PostgreSQL)
 
 # Any trade-offs you made
-- Performance vs realism
-- Docker image size increase
-- Frontend complexity vs usability
-- **Polling vs. WebSockets for Progress**: I chose to implement short-interval HTTP polling (1s) for the progress bar instead of setting up a complex WebSocket connection
-    - **Reasoning**: For a local MVP with a single user, polling is significantly simpler to implement and debug than managing WebSocket lifecycles. The overhead on a local Redis instance is negligible.
+- **Performance vs Realism (Ethical Scraping):**
+  I deliberately chose a "Listing-First" strategy (50 requests) over a "Deep-Scrape" strategy (1,050 requests)
+    - **Reasoning:** In a real-world scenario, scraping 1,000+ pages requires robust rate-limiting, proxy rotation, and error handling to avoid IP bans, as it may be considered an aggressive attack on the server.
+    - **Trade-off:** For this MVP, I prioritized **pipeline latency** and **server respect** over data depth. The schema `BookDetails` is defined in `schemas.py` to show I anticipated the data structure, but I disabled the actual deep-fetch loop to keep the demo lightweight.
+
+- **Docker Image Size:**
+  The inclusion of Playwright and its browser binaries increases the image size significantly compared to a simple `requests` based solution.
+
+- **Polling vs. WebSockets for Progress:**
+  I chose to implement short-interval HTTP polling (1s) for the progress bar instead of setting up a complex WebSocket connection.
+    - **Reasoning:** For a local MVP with a single user, polling is significantly simpler to implement and debug than managing WebSocket lifecycles. The overhead on a local Redis instance is negligible.

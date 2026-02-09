@@ -4,8 +4,8 @@ from source.features.extraction.schemas import BookPreview
 
 
 def run_preview_extraction(task_instance=None) -> List[BookPreview]:
-    # Pass the task instance down
-    return extract_all_pages(task_instance=task_instance, total_pages=50)
+    total_count = get_page_count()
+    return extract_all_pages(task_instance=task_instance, total_pages=total_count)
 
 def fetch_total_pages() -> int:
     return get_page_count()
