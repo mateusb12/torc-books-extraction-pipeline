@@ -1,3 +1,5 @@
+import os
+import redis
 from celery.result import AsyncResult
 from fastapi import APIRouter
 
@@ -6,17 +8,35 @@ from source.features.extraction.tasks import preview_task
 
 extraction_router = APIRouter()
 
+REDIS_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+redis_client = redis.from_url(REDIS_URL)
+
 
 @extraction_router.post("/extract")
 def trigger_extraction():
     """
-    Triggers the main extraction process (formerly preview_task).
+    Triggers the scraper and saves the Task ID to history
     """
     task = preview_task.delay()
+
+    redis_client.lpush("task_history", task.id)
+    redis_client.ltrim("task_history", 0, 49)
+    # ----------------------------
+
     return {
         "message": "extraction task queued",
         "task_id": task.id,
     }
+
+
+@extraction_router.get("/history")
+def get_task_history():
+    """
+    Returns the list of recently triggered task IDs
+    """
+    raw_ids = redis_client.lrange("task_history", 0, -1)
+    task_ids = [t.decode("utf-8") for t in raw_ids]
+    return {"history": task_ids}
 
 
 @extraction_router.get("/task/{task_id}")
