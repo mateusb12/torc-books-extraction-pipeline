@@ -1,3 +1,4 @@
 .idea/
 *.iml
 /repomix-output.md
+/.env
